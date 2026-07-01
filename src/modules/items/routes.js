@@ -6,11 +6,48 @@ import {
   ItemsListResponseSchema,
   ItemResponseSchema,
   DeleteItemResponseSchema,
+  BulkImportResponseSchema,
   ErrorResponseSchema,
 } from './schema.js';
 import * as controller from './controller.js';
 
 export default async function itemsRoutes(fastify) {
+  fastify.get(
+    '/import/template',
+    {
+      schema: {
+        tags: ['Items'],
+        summary: 'Download Excel import template',
+        description: 'Returns a sample spreadsheet for bulk product uploads.',
+        response: {
+          200: { type: 'string', contentMediaType: 'application/octet-stream' },
+          500: ErrorResponseSchema,
+        },
+      },
+    },
+    controller.downloadImportTemplate
+  );
+
+  fastify.post(
+    '/import',
+    {
+      schema: {
+        tags: ['Items'],
+        summary: 'Import products from Excel',
+        description:
+          'Upload an Excel (.xlsx, .xls) or CSV file to add multiple products at once.',
+        consumes: ['multipart/form-data'],
+        response: {
+          200: BulkImportResponseSchema,
+          201: BulkImportResponseSchema,
+          400: ErrorResponseSchema,
+          500: ErrorResponseSchema,
+        },
+      },
+    },
+    controller.importItems
+  );
+
   fastify.get(
     '/',
     {

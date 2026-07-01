@@ -74,13 +74,44 @@ export async function create(db, data) {
       data.name,
       data.description ?? null,
       data.category,
-      data.cost_price,
-      data.selling_price,
+      data.cost_price ?? 0,
+      data.selling_price ?? 0,
       data.min_stock_level ?? 5,
     ]
   );
 
   return mapItem(result.rows[0]);
+}
+
+export async function createMany(db, items) {
+  const created = [];
+  const errors = [];
+
+  for (let index = 0; index < items.length; index++) {
+    const { _sourceRow, ...item } = items[index];
+    const rowNumber = _sourceRow ?? index + 2;
+
+    try {
+      const createdItem = await create(db, item);
+      created.push(createdItem);
+    } catch (err) {
+      if (err.code === '23505') {
+        errors.push({
+          row: rowNumber,
+          sku: item.sku,
+          message: 'A product with this code already exists',
+        });
+      } else {
+        errors.push({
+          row: rowNumber,
+          sku: item.sku,
+          message: err.message || 'Could not add this product',
+        });
+      }
+    }
+  }
+
+  return { created, errors };
 }
 
 export async function update(db, id, data) {
