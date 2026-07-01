@@ -1,12 +1,13 @@
 # vita-store-api
 
-RESTful backend for core inventory management: product catalog, real-time stock levels, and an append-only movement ledger.
+Monolithic inventory management platform — Fastify API, PostgreSQL, and a web UI served from a single application.
 
 ## Tech Stack
 
-- **Fastify** – high-throughput HTTP server
+- **Fastify** – API server + static frontend hosting
 - **PostgreSQL** – source of truth with raw SQL (`pg` driver)
 - **TypeBox** – request/response schema validation
+- **Vanilla JS UI** – inventory dashboard inspired by warm editorial design
 - **Swagger UI** – interactive API docs at `/docs`
 - **Docker** – containerized app and database
 
@@ -17,33 +18,43 @@ cd vitastore-api/docker
 docker compose up --build
 ```
 
-- API: http://localhost:3000
-- Swagger UI: http://localhost:3000/docs
-- Health: http://localhost:3000/health
+- **Landing:** http://localhost:3000
+- **Login:** http://localhost:3000/login
+- **Dashboard:** http://localhost:3000/dashboard (requires sign-in)
+- **Swagger:** http://localhost:3000/docs
+- **Health:** http://localhost:3000/health
 
 ## Local Development
-
-1. Start PostgreSQL (or use Docker for DB only):
-
-```bash
-cd docker
-docker compose up postgres -d
-```
-
-2. Copy environment file and install dependencies:
 
 ```bash
 cp .env.example .env
 npm install
-```
-
-3. Update `.env` so `DB_HOST=localhost` when running the API outside Docker.
-
-4. Run the API:
-
-```bash
 npm run dev
 ```
+
+`npm run dev` starts embedded PostgreSQL (if needed) and the full monolith with hot reload.
+
+**Default credentials:** `admin` / `admin123` (configure via `AUTH_USERNAME` and `AUTH_PASSWORD`).
+
+## Monolithic Architecture
+
+```
+vitastore-api/
+├── public/              # Frontend (HTML, CSS, JS)
+│   ├── index.html
+│   ├── css/main.css
+│   └── js/
+├── src/                 # Fastify API
+│   ├── modules/         # items, movements, dashboard
+│   └── server.js        # API + static file serving
+├── docker/
+└── scripts/dev-with-db.mjs
+```
+
+The server serves:
+- `/` — Inventory management UI
+- `/api/*` — REST API
+- `/docs` — Swagger UI
 
 ## API Endpoints
 
@@ -69,30 +80,6 @@ npm run dev
 | Method | Path | Description |
 |--------|------|-------------|
 | GET | `/api/dashboard/metrics` | Total value, low stock count, total items |
-
-## Movement Types
-
-- **IN** – positive quantity (stock increase)
-- **OUT** – positive quantity in request, stored as negative (stock decrease)
-- **ADJUSTMENT** – signed quantity (positive or negative net change)
-
-Stock updates use `SELECT ... FOR UPDATE` inside a transaction to prevent race conditions.
-
-## Project Structure
-
-```
-vitastore-api/
-├── docker/              # Docker Compose + init.sql
-├── src/
-│   ├── config/          # Environment config
-│   ├── db/              # PostgreSQL pool
-│   ├── plugins/         # Fastify plugins
-│   ├── modules/         # Domain modules (items, movements, dashboard)
-│   ├── utils/           # Shared helpers
-│   └── server.js        # App entry point
-├── Dockerfile
-└── package.json
-```
 
 ## Environment Variables
 
