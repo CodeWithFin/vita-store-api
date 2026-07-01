@@ -525,42 +525,77 @@ body.dash-body {
 
 /* Chart */
 .dash-chart {
+  min-height: 180px;
   display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 10px;
-  height: 180px;
-  padding-top: 10px;
-}
-
-.dash-chart-bar-wrap {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 8px;
-  height: 100%;
-  justify-content: flex-end;
+  justify-content: center;
+  padding: 8px 0;
 }
 
-.dash-chart-bar {
+.dash-chart-empty {
   width: 100%;
-  max-width: 48px;
-  background: linear-gradient(180deg, #c47a4a 0%, var(--dash-accent) 100%);
-  min-height: 8px;
-  transition: height 400ms ease;
-  clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
-}
-
-.dash-chart-bar.is-alt {
-  background: linear-gradient(180deg, #d4956a 0%, var(--dash-accent-dark) 100%);
-}
-
-.dash-chart-label {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  text-align: center;
   color: var(--dash-text-soft);
+  font-size: 14px;
+  padding: 48px 16px;
+}
+
+.dash-pie-wrap {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  width: 100%;
+}
+
+.dash-pie {
+  width: 148px;
+  height: 148px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 6px solid rgba(252, 248, 244, 0.95);
+  box-shadow: 0 10px 24px rgba(26, 20, 16, 0.08);
+}
+
+.dash-pie-legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex: 1;
+  display: grid;
+  gap: 12px;
+}
+
+.dash-pie-legend-item {
+  display: grid;
+  grid-template-columns: 14px 1fr auto auto;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--dash-text-soft);
+}
+
+.dash-pie-swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  clip-path: polygon(3px 0, 100% 0, 100% calc(100% - 3px), calc(100% - 3px) 100%, 0 100%, 0 3px);
+}
+
+.dash-pie-legend-label {
+  color: var(--dash-text);
+  font-weight: 600;
+}
+
+.dash-pie-legend-count {
+  font-weight: 700;
+  color: var(--dash-text);
+}
+
+.dash-pie-legend-pct {
+  min-width: 36px;
+  text-align: right;
+  font-size: 12px;
+  font-weight: 600;
 }
 
 /* Reminders */
@@ -937,4 +972,13 @@ body.dash-body {
   .dash-user-info { display: none; }
 
   .dash-page-head { flex-direction: column; }
+
+  .dash-pie-wrap {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .dash-pie {
+    margin: 0 auto;
+  }
 }

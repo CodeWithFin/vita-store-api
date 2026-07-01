@@ -79,39 +79,62 @@ function renderMovementChart() {
   const chart = $('#movement-chart');
   if (!chart) return;
 
-  const days = [];
-  for (let i = 6; i >= 0; i--) {
-    const d = new Date();
-    d.setDate(d.getDate() - i);
-    d.setHours(0, 0, 0, 0);
-    days.push(d);
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - 6);
+  cutoff.setHours(0, 0, 0, 0);
+
+  const recent = state.movements.filter((m) => new Date(m.created_at) >= cutoff);
+
+  const segments = [
+    { key: 'IN', label: 'Stock in', color: '#a64b16' },
+    { key: 'OUT', label: 'Stock out', color: '#b85c4a' },
+    { key: 'ADJUSTMENT', label: 'Adjustments', color: '#c49a3c' },
+  ].map((segment) => ({
+    ...segment,
+    count: recent.filter((m) => m.type === segment.key).length,
+  }));
+
+  const total = segments.reduce((sum, segment) => sum + segment.count, 0);
+
+  if (!total) {
+    chart.innerHTML = '<div class="dash-chart-empty">No movements in the last 7 days</div>';
+    return;
   }
 
-  const counts = days.map((day) => {
-    const next = new Date(day);
-    next.setDate(next.getDate() + 1);
-    return state.movements.filter((m) => {
-      const t = new Date(m.created_at);
-      return t >= day && t < next;
-    }).length;
-  });
+  let cumulative = 0;
+  const gradientStops = segments
+    .filter((segment) => segment.count > 0)
+    .map((segment) => {
+      const start = (cumulative / total) * 360;
+      cumulative += segment.count;
+      const end = (cumulative / total) * 360;
+      return `${segment.color} ${start}deg ${end}deg`;
+    });
 
-  const max = Math.max(...counts, 1);
-  const labels = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-
-  chart.innerHTML = counts
-    .map((count, i) => {
-      const height = Math.max(8, (count / max) * 140);
-      const alt = i % 2 === 1 ? ' is-alt' : '';
-      const dayLabel = labels[days[i].getDay()];
-      return `
-        <div class="dash-chart-bar-wrap">
-          <div class="dash-chart-bar${alt}" style="height:${height}px" title="${count} movements"></div>
-          <span class="dash-chart-label">${dayLabel}</span>
-        </div>
-      `;
-    })
-    .join('');
+  chart.innerHTML = `
+    <div class="dash-pie-wrap">
+      <div
+        class="dash-pie"
+        style="background: conic-gradient(${gradientStops.join(', ')})"
+        role="img"
+        aria-label="Movement volume pie chart"
+      ></div>
+      <ul class="dash-pie-legend">
+        ${segments
+          .map(
+            (segment) => `
+          <li class="dash-pie-legend-item">
+            <span class="dash-pie-swatch" style="background:${segment.color}"></span>
+            <span class="dash-pie-legend-label">${segment.label}</span>
+            <strong class="dash-pie-legend-count">${segment.count}</strong>
+            <span class="dash-pie-legend-pct">${Math.round((segment.count / total) * 100)}%</span>
+          </li>
+        `
+          )
+          .join('')}
+      </ul>
+    </div>
+  `;
 }
 
 function renderLowStockList() {
