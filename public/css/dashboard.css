@@ -826,6 +826,190 @@ body.dash-body {
 
 .dash-table tr:last-child td { border-bottom: none; }
 
+.dash-table tr.is-low-stock td {
+  background: rgba(184, 92, 74, 0.04);
+}
+
+.dash-table-sku {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--dash-text-soft);
+}
+
+.dash-table-meta {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--dash-text-soft);
+  line-height: 1.5;
+  max-width: 28ch;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dash-table-stock.is-low {
+  color: var(--dash-danger);
+  font-weight: 700;
+}
+
+.dash-table-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.dash-table-btn {
+  min-height: 30px;
+  padding: 0 10px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--dash-text);
+  background: rgba(252, 250, 247, 0.9);
+  border: 1px solid rgba(216, 209, 199, 0.9);
+  cursor: pointer;
+  clip-path: polygon(5px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%, 0 5px);
+}
+
+.dash-table-btn:hover {
+  border-color: rgba(var(--vs-accent-rgb), 0.45);
+  color: var(--dash-accent-dark);
+}
+
+.dash-table-btn.is-danger {
+  color: var(--dash-danger);
+}
+
+.dash-table-btn.is-danger:hover {
+  border-color: rgba(184, 92, 74, 0.45);
+}
+
+/* Products module layout */
+.dash-products-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 20px;
+  align-items: start;
+}
+
+.dash-products-main {
+  min-width: 0;
+}
+
+.dash-endpoints-card {
+  padding: 22px 18px;
+  background: rgba(252, 250, 247, 0.92);
+  border: 1px solid rgba(216, 209, 199, 0.84);
+  box-shadow: var(--vs-shadow-soft);
+  clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+}
+
+.dash-endpoints-title {
+  margin: 0 0 6px;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.dash-endpoints-sub {
+  margin: 0 0 16px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--dash-text-soft);
+}
+
+.dash-endpoints-list {
+  list-style: none;
+  margin: 0 0 18px;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.dash-endpoints-list li {
+  display: grid;
+  gap: 4px;
+}
+
+.dash-endpoint-method {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  min-width: 52px;
+  min-height: 22px;
+  padding: 0 8px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  border-radius: 4px;
+}
+
+.dash-endpoint-method.is-get { background: rgba(143, 160, 140, 0.18); color: var(--dash-accent-dark); }
+.dash-endpoint-method.is-post { background: rgba(166, 75, 22, 0.14); color: var(--dash-accent); }
+.dash-endpoint-method.is-put { background: rgba(196, 154, 60, 0.16); color: #8a6b24; }
+.dash-endpoint-method.is-delete { background: rgba(184, 92, 74, 0.14); color: var(--dash-danger); }
+
+.dash-endpoints-list code {
+  font-size: 12px;
+  color: var(--dash-text);
+  word-break: break-all;
+}
+
+.dash-endpoint-desc {
+  font-size: 12px;
+  color: var(--dash-text-soft);
+  line-height: 1.45;
+}
+
+.dash-endpoints-docs {
+  width: 100%;
+  min-height: 38px;
+  font-size: 11px;
+}
+
+.product-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 20px;
+  margin: 0;
+}
+
+.product-detail-grid div {
+  display: grid;
+  gap: 4px;
+}
+
+.product-detail-grid .is-full {
+  grid-column: 1 / -1;
+}
+
+.product-detail-grid dt {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--dash-text-soft);
+}
+
+.product-detail-grid dd {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--dash-text);
+}
+
+.product-detail {
+  margin-bottom: 8px;
+}
+
+.modal-sub code {
+  font-size: 12px;
+  color: var(--dash-accent-dark);
+}
+
 .dash-pill {
   display: inline-flex;
   padding: 4px 10px;
@@ -953,6 +1137,7 @@ body.dash-body {
   .dash-kpi-row { grid-template-columns: repeat(2, 1fr); }
   .dash-grid-2,
   .dash-grid-3 { grid-template-columns: 1fr; }
+  .dash-products-layout { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 900px) {

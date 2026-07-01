@@ -215,47 +215,87 @@ async function loadItems() {
 }
 
 function renderItems() {
-  const grid = $('#items-grid');
-  const empty = $('#items-empty');
-  if (!grid) return;
+  const tbody = $('#products-table-body');
+  const empty = $('#products-empty');
+  const countEl = $('#products-count');
+  if (!tbody) return;
+
+  if (countEl) {
+    countEl.textContent = `${state.items.length} product${state.items.length === 1 ? '' : 's'} shown`;
+  }
 
   if (!state.items.length) {
-    grid.innerHTML = '';
+    tbody.innerHTML = '';
     empty?.classList.remove('hidden');
     return;
   }
 
   empty?.classList.add('hidden');
-  grid.innerHTML = state.items
+  tbody.innerHTML = state.items
     .map((item) => {
       const isLow = item.current_stock <= item.min_stock_level;
       return `
-        <article class="dash-item-card ${isLow ? 'is-low' : ''}">
-          <div class="dash-item-top">
-            <span class="dash-item-sku">${escapeHtml(item.sku)}</span>
-            ${isLow ? '<span class="dash-reminder-badge">Low stock</span>' : ''}
-          </div>
-          <h3 class="dash-item-name">${escapeHtml(item.name)}</h3>
-          <p class="dash-item-cat">${escapeHtml(item.category)}</p>
-          <div class="dash-item-stats">
-            <div class="dash-item-stat">
-              <span class="dash-item-stat-label">Stock</span>
-              <span class="dash-item-stat-val">${item.current_stock}</span>
+        <tr class="${isLow ? 'is-low-stock' : ''}">
+          <td><span class="dash-table-sku">${escapeHtml(item.sku)}</span></td>
+          <td>
+            <strong>${escapeHtml(item.name)}</strong>
+            ${item.description ? `<div class="dash-table-meta">${escapeHtml(item.description)}</div>` : ''}
+          </td>
+          <td>${escapeHtml(item.category)}</td>
+          <td>
+            <span class="dash-table-stock${isLow ? ' is-low' : ''}">${item.current_stock}</span>
+            ${isLow ? '<span class="dash-reminder-badge" style="margin-left:6px">Low</span>' : ''}
+          </td>
+          <td>${item.min_stock_level}</td>
+          <td>
+            <div class="dash-table-actions">
+              <button class="dash-table-btn" data-action="view" data-id="${item.id}" type="button">View</button>
+              <button class="dash-table-btn" data-action="edit" data-id="${item.id}" type="button">Edit</button>
+              <button class="dash-table-btn" data-action="movement" data-id="${item.id}" type="button">Log</button>
+              <button class="dash-table-btn is-danger" data-action="delete" data-id="${item.id}" type="button">Delete</button>
             </div>
-            <div class="dash-item-stat">
-              <span class="dash-item-stat-label">Min level</span>
-              <span class="dash-item-stat-val">${item.min_stock_level}</span>
-            </div>
-          </div>
-          <div class="dash-item-actions">
-            <button class="dash-btn dash-btn-primary" data-action="movement" data-id="${item.id}" type="button">Log</button>
-            <button class="dash-btn dash-btn-outline" data-action="edit" data-id="${item.id}" type="button">Edit</button>
-            <button class="dash-btn dash-btn-outline" data-action="delete" data-id="${item.id}" type="button" style="color:#b42318">Del</button>
-          </div>
-        </article>
+          </td>
+        </tr>
       `;
     })
     .join('');
+}
+
+function renderProductDetail(item) {
+  const container = $('#product-detail');
+  if (!container) return;
+
+  container.innerHTML = `
+    <dl class="product-detail-grid">
+      <div><dt>SKU</dt><dd>${escapeHtml(item.sku)}</dd></div>
+      <div><dt>Name</dt><dd>${escapeHtml(item.name)}</dd></div>
+      <div><dt>Category</dt><dd>${escapeHtml(item.category)}</dd></div>
+      <div><dt>Current stock</dt><dd>${item.current_stock}</dd></div>
+      <div><dt>Min stock level</dt><dd>${item.min_stock_level}</dd></div>
+      <div class="is-full"><dt>Description</dt><dd>${item.description ? escapeHtml(item.description) : '—'}</dd></div>
+      <div><dt>Created</dt><dd>${formatDate(item.created_at)}</dd></div>
+      <div><dt>Updated</dt><dd>${formatDate(item.updated_at)}</dd></div>
+    </dl>
+  `;
+
+  const editBtn = $('#product-detail-edit');
+  if (editBtn) {
+    editBtn.onclick = () => {
+      closeModal('product-modal');
+      fillItemForm(item);
+      openModal('item-modal');
+    };
+  }
+}
+
+async function openProductDetail(itemId) {
+  try {
+    const { data } = await API.getItem(itemId);
+    renderProductDetail(data);
+    openModal('product-modal');
+  } catch (err) {
+    showToast(err.message, true);
+  }
 }
 
 async function loadMovements() {
@@ -325,14 +365,14 @@ function populateMovementItemSelect() {
 function resetItemForm() {
   state.editingItem = null;
   $('#item-form').reset();
-  $('#item-modal-title').textContent = 'Add inventory item';
-  $('#item-modal-sub').textContent = 'Create a catalog entry. Stock starts at zero until movements are logged.';
+  $('#item-modal-title').textContent = 'Add product';
+  $('#item-modal-sub').textContent = 'Create a new catalog entry. Stock starts at zero until movements are logged.';
 }
 
 function fillItemForm(item) {
   state.editingItem = item;
-  $('#item-modal-title').textContent = 'Edit inventory item';
-  $('#item-modal-sub').textContent = 'Update catalog details. Stock levels are managed through movements.';
+  $('#item-modal-title').textContent = 'Edit product';
+  $('#item-modal-sub').textContent = 'Update product details. Stock levels are managed through movements.';
   $('#item-sku').value = item.sku;
   $('#item-sku').disabled = true;
   $('#item-name').value = item.name;
@@ -542,7 +582,7 @@ function bindEvents() {
   $('#btn-logout-sidebar')?.addEventListener('click', logout);
 
   $('#btn-low-stock-alert')?.addEventListener('click', () => {
-    switchPanel('inventory');
+    switchPanel('products');
     $('#filter-low-stock').checked = true;
     loadItems();
   });
@@ -579,13 +619,15 @@ function bindEvents() {
   $('#filter-low-stock')?.addEventListener('change', () => loadItems());
   $('#movement-filter-item')?.addEventListener('change', () => loadMovements());
 
-  $('#items-grid')?.addEventListener('click', async (e) => {
+  $('#products-table-body')?.addEventListener('click', async (e) => {
     const btn = e.target.closest('[data-action]');
     if (!btn) return;
     const item = state.items.find((i) => i.id === btn.dataset.id);
     if (!item) return;
 
-    if (btn.dataset.action === 'edit') {
+    if (btn.dataset.action === 'view') {
+      await openProductDetail(item.id);
+    } else if (btn.dataset.action === 'edit') {
       fillItemForm(item);
       openModal('item-modal');
     } else if (btn.dataset.action === 'movement') {
@@ -595,7 +637,7 @@ function bindEvents() {
       if (!confirm(`Delete "${item.name}"?`)) return;
       try {
         await API.deleteItem(item.id);
-        showToast('Item removed');
+        showToast('Product removed');
         await refreshAll();
       } catch (err) {
         showToast(err.message, true);

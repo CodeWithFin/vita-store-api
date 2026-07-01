@@ -29,9 +29,9 @@
               <span class="dash-nav-icon"><iconify-icon icon="solar:widget-5-linear"></iconify-icon></span>
               <span class="dash-nav-text">Dashboard</span>
             </button>
-            <button class="dash-nav-item" data-panel="inventory" type="button">
+            <button class="dash-nav-item" data-panel="products" type="button">
               <span class="dash-nav-icon"><iconify-icon icon="solar:box-minimalistic-linear"></iconify-icon></span>
-              <span class="dash-nav-text">Inventory</span>
+              <span class="dash-nav-text">Products</span>
             </button>
             <button class="dash-nav-item" data-panel="movements" type="button">
               <span class="dash-nav-icon"><iconify-icon icon="solar:transfer-horizontal-linear"></iconify-icon></span>
@@ -117,7 +117,7 @@
             <div class="dash-kpi is-highlight">
               <div class="dash-kpi-top">
                 <span class="dash-kpi-label">Low stock alerts</span>
-                <button class="dash-kpi-link" data-goto="inventory" type="button">
+                <button class="dash-kpi-link" data-goto="products" type="button">
                   <iconify-icon icon="solar:arrow-right-up-linear" width="18"></iconify-icon>
                 </button>
               </div>
@@ -126,7 +126,7 @@
             <div class="dash-kpi">
               <div class="dash-kpi-top">
                 <span class="dash-kpi-label">Total items</span>
-                <button class="dash-kpi-link" data-goto="inventory" type="button">
+                <button class="dash-kpi-link" data-goto="products" type="button">
                   <iconify-icon icon="solar:arrow-right-up-linear" width="18"></iconify-icon>
                 </button>
               </div>
@@ -174,7 +174,7 @@
                   <h2 class="dash-card-title">Catalog health</h2>
                   <p class="dash-card-sub">Items in good standing</p>
                 </div>
-                <button class="dash-btn dash-btn-outline" data-goto="inventory" type="button" style="min-height:36px;font-size:10px">View All</button>
+                <button class="dash-btn dash-btn-outline" data-goto="products" type="button" style="min-height:36px;font-size:10px">View All</button>
               </div>
               <div class="dash-kpi-value" id="metric-in-stock" style="font-size:2rem">—</div>
               <p class="dash-card-sub" style="margin-top:8px">Items above minimum threshold</p>
@@ -209,17 +209,17 @@
           </div>
         </div>
 
-        <!-- Inventory Panel -->
-        <div id="panel-inventory" class="dash-panel">
+        <!-- Products Panel -->
+        <div id="panel-products" class="dash-panel">
           <div class="dash-page-head">
             <div>
-              <h1 class="dash-page-title">Inventory <em>catalog.</em></h1>
-              <p class="dash-page-sub">Browse, filter, and manage your product catalog.</p>
+              <h1 class="dash-page-title">All <em>products.</em></h1>
+              <p class="dash-page-sub">View and manage every product in your catalog.</p>
             </div>
             <div class="dash-page-actions">
               <button id="btn-add-item-3" class="dash-btn dash-btn-primary" type="button">
                 <iconify-icon icon="solar:add-circle-linear" width="16"></iconify-icon>
-                New Item
+                New Product
               </button>
               <button id="btn-import-items-2" class="dash-btn dash-btn-outline" type="button">
                 <iconify-icon icon="solar:upload-linear" width="16"></iconify-icon>
@@ -237,8 +237,73 @@
             </label>
           </div>
 
-          <div id="items-empty" class="dash-empty hidden">No items yet. Add your first product to get started.</div>
-          <div id="items-grid" class="dash-items-grid"></div>
+          <p id="products-count" class="dash-card-sub" style="margin-bottom:16px"></p>
+
+          <div class="dash-products-layout">
+            <div class="dash-products-main">
+              <div id="products-empty" class="dash-empty hidden">No products yet. Add your first product to get started.</div>
+              <div class="dash-table-wrap">
+                <table class="dash-table">
+                  <thead>
+                    <tr>
+                      <th>SKU</th>
+                      <th>Name</th>
+                      <th>Category</th>
+                      <th>Stock</th>
+                      <th>Min</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="products-table-body"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <aside class="dash-endpoints-card">
+              <h2 class="dash-endpoints-title">Product API endpoints</h2>
+              <p class="dash-endpoints-sub">All routes for the products module.</p>
+              <ul class="dash-endpoints-list">
+                <li>
+                  <span class="dash-endpoint-method is-get">GET</span>
+                  <code>/api/items</code>
+                  <span class="dash-endpoint-desc">List all products</span>
+                </li>
+                <li>
+                  <span class="dash-endpoint-method is-get">GET</span>
+                  <code>/api/items/:id</code>
+                  <span class="dash-endpoint-desc">Get one product by ID or SKU</span>
+                </li>
+                <li>
+                  <span class="dash-endpoint-method is-post">POST</span>
+                  <code>/api/items</code>
+                  <span class="dash-endpoint-desc">Create a new product</span>
+                </li>
+                <li>
+                  <span class="dash-endpoint-method is-put">PUT</span>
+                  <code>/api/items/:id</code>
+                  <span class="dash-endpoint-desc">Update a product</span>
+                </li>
+                <li>
+                  <span class="dash-endpoint-method is-delete">DELETE</span>
+                  <code>/api/items/:id</code>
+                  <span class="dash-endpoint-desc">Delete a product</span>
+                </li>
+                <li>
+                  <span class="dash-endpoint-method is-get">GET</span>
+                  <code>/api/items/import/template</code>
+                  <span class="dash-endpoint-desc">Download Excel template</span>
+                </li>
+                <li>
+                  <span class="dash-endpoint-method is-post">POST</span>
+                  <code>/api/items/import</code>
+                  <span class="dash-endpoint-desc">Import products from Excel</span>
+                </li>
+              </ul>
+              <a href="/docs#/Items" class="dash-btn dash-btn-outline dash-endpoints-docs" target="_blank" rel="noopener">
+                Open full API docs
+              </a>
+            </aside>
+          </div>
         </div>
 
         <!-- Movements Panel -->
@@ -314,11 +379,24 @@
     </div>
   </div>
 
+  <!-- Product detail modal -->
+  <div id="product-modal" class="modal-backdrop">
+    <div class="modal" role="dialog">
+      <h2 class="modal-title">Product details</h2>
+      <p class="modal-sub">Fetched via <code>GET /api/items/:id</code></p>
+      <div id="product-detail" class="product-detail"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" data-close="product-modal">Close</button>
+        <button type="button" class="btn-primary" id="product-detail-edit">Edit product</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Item Modal -->
   <div id="item-modal" class="modal-backdrop">
     <div class="modal" role="dialog">
-      <h2 id="item-modal-title" class="modal-title">Add inventory item</h2>
-      <p id="item-modal-sub" class="modal-sub">Create a catalog entry. Stock starts at zero until movements are logged.</p>
+      <h2 id="item-modal-title" class="modal-title">Add product</h2>
+      <p id="item-modal-sub" class="modal-sub">Create a new catalog entry. Stock starts at zero until movements are logged.</p>
       <form id="item-form">
         <div class="form-grid">
           <div class="form-field">
