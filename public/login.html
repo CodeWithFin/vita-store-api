@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="/assets/images/vitapharm-favicon.png">
+  <title>Sign In — Vitapharm</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700;800&family=Playfair+Display:ital@1&display=swap" rel="stylesheet">
+  <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+  <link rel="stylesheet" href="/css/main.css">
+</head>
+<body class="login-page">
+
+  <div class="login-shell reveal">
+    <div class="login-brand">
+      <img class="app-brand-logo" src="/assets/images/vitapharm.png" alt="Vitapharm">
+    </div>
+
+    <div class="login-card">
+      <span class="login-kicker">
+        <iconify-icon icon="solar:lock-keyhole-linear" width="14"></iconify-icon>
+        Secure access
+      </span>
+
+      <h1 class="login-title">
+        Welcome back,<br>
+        <span class="hero-font-serif" style="color:var(--vs-accent)">sign in to continue.</span>
+      </h1>
+
+      <p class="login-subtitle">
+        Enter your username and password to open your stock dashboard.
+      </p>
+
+      <div id="login-error" class="login-error" role="alert"></div>
+
+      <form id="login-form" class="login-form">
+        <div class="form-field">
+          <label class="form-label" for="username">Username</label>
+          <input id="username" class="form-input" type="text" autocomplete="username" required>
+        </div>
+
+        <div class="form-field">
+          <label class="form-label" for="password">Password</label>
+          <input id="password" class="form-input" type="password" autocomplete="current-password" required>
+        </div>
+
+        <button type="submit" class="btn-primary login-submit" id="login-submit">
+          Sign In
+          <iconify-icon icon="solar:login-2-linear" width="18"></iconify-icon>
+        </button>
+      </form>
+
+      <p class="login-footnote">
+        Need access? Ask your store administrator for a username and password.
+      </p>
+    </div>
+  </div>
+
+  <script type="module" src="/js/login.js"></script>
+</body>
+</html>

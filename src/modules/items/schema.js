@@ -19,8 +19,6 @@ export const CreateItemBodySchema = Type.Object({
   name: Type.String({ minLength: 1, maxLength: 255 }),
   description: Type.Optional(Type.Union([Type.String(), Type.Null()])),
   category: Type.String({ minLength: 1, maxLength: 100 }),
-  cost_price: Type.Number({ minimum: 0 }),
-  selling_price: Type.Number({ minimum: 0 }),
   min_stock_level: Type.Optional(Type.Integer({ minimum: 0 })),
 });
 
@@ -28,8 +26,6 @@ export const UpdateItemBodySchema = Type.Object({
   name: Type.Optional(Type.String({ minLength: 1, maxLength: 255 })),
   description: Type.Optional(Type.Union([Type.String(), Type.Null()])),
   category: Type.Optional(Type.String({ minLength: 1, maxLength: 100 })),
-  cost_price: Type.Optional(Type.Number({ minimum: 0 })),
-  selling_price: Type.Optional(Type.Number({ minimum: 0 })),
   min_stock_level: Type.Optional(Type.Integer({ minimum: 0 })),
 });
 
@@ -62,5 +58,21 @@ export const DeleteItemResponseSchema = Type.Object({
   message: Type.String(),
   data: Type.Object({
     id: Type.String({ format: 'uuid' }),
+  }),
+});
+
+export const BulkImportResponseSchema = Type.Object({
+  message: Type.String(),
+  data: Type.Object({
+    created_count: Type.Integer(),
+    failed_count: Type.Integer(),
+    created: Type.Array(ItemSchema),
+    errors: Type.Array(
+      Type.Object({
+        row: Type.Integer(),
+        sku: Type.String(),
+        message: Type.String(),
+      })
+    ),
   }),
 });

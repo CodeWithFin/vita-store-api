@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="/assets/images/vitapharm-favicon.png">
+  <title>VitaStore — Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700;800&family=Playfair+Display:ital@1&display=swap" rel="stylesheet">
+  <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body class="dash-body">
+
+  <div class="dash-app">
+    <!-- Sidebar -->
+    <aside class="dash-sidebar" id="dash-sidebar">
+      <div class="dash-sidebar-frame">
+        <a href="/" class="dash-logo app-brand">
+          <img class="app-brand-logo" src="/assets/images/vitapharm.png" alt="Vitapharm">
+        </a>
+
+        <div class="dash-nav-section">
+          <div class="dash-nav-label">Menu</div>
+          <nav class="dash-nav">
+            <button class="dash-nav-item is-active" data-panel="overview" type="button">
+              <span class="dash-nav-icon"><iconify-icon icon="solar:widget-5-linear"></iconify-icon></span>
+              <span class="dash-nav-text">Dashboard</span>
+            </button>
+            <button class="dash-nav-item" data-panel="products" type="button">
+              <span class="dash-nav-icon"><iconify-icon icon="solar:box-minimalistic-linear"></iconify-icon></span>
+              <span class="dash-nav-text">Products</span>
+            </button>
+            <button class="dash-nav-item" data-panel="movements" type="button">
+              <span class="dash-nav-icon"><iconify-icon icon="solar:transfer-horizontal-linear"></iconify-icon></span>
+              <span class="dash-nav-text">Movements</span>
+            </button>
+            <a class="dash-nav-item" href="/docs" target="_blank" rel="noopener">
+              <span class="dash-nav-icon"><iconify-icon icon="solar:document-text-linear"></iconify-icon></span>
+              <span class="dash-nav-text">API Docs</span>
+            </a>
+          </nav>
+        </div>
+
+        <div class="dash-nav-section dash-nav-section-bottom">
+          <div class="dash-nav-label">General</div>
+          <nav class="dash-nav">
+            <a class="dash-nav-item" href="/">
+              <span class="dash-nav-icon"><iconify-icon icon="solar:home-2-linear"></iconify-icon></span>
+              <span class="dash-nav-text">Landing Page</span>
+            </a>
+            <button class="dash-nav-item" id="btn-logout-sidebar" type="button">
+              <span class="dash-nav-icon"><iconify-icon icon="solar:logout-2-linear"></iconify-icon></span>
+              <span class="dash-nav-text">Logout</span>
+            </button>
+          </nav>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <div class="dash-main">
+      <header class="dash-header">
+        <div class="dash-search">
+          <iconify-icon icon="solar:magnifer-linear" width="20" style="color:var(--dash-text-muted)"></iconify-icon>
+          <input id="global-search" type="search" placeholder="Search item, SKU, or category…">
+        </div>
+
+        <div class="dash-header-actions">
+          <button class="dash-icon-btn" type="button" title="Notifications" id="btn-low-stock-alert">
+            <iconify-icon icon="solar:bell-linear" width="20"></iconify-icon>
+          </button>
+          <div class="dash-user">
+            <div class="dash-avatar" id="user-avatar">A</div>
+            <div class="dash-user-info">
+              <span class="dash-user-name" id="nav-username">Admin</span>
+              <span class="dash-user-email" id="nav-email">admin@vitastore.local</span>
+            </div>
+            <button class="dash-icon-btn" id="btn-logout" type="button" title="Sign out" style="border:none;background:transparent">
+              <iconify-icon icon="solar:logout-2-linear" width="18"></iconify-icon>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <div class="dash-content">
+
+        <!-- Overview Panel -->
+        <div id="panel-overview" class="dash-panel is-active">
+          <div class="dash-page-head">
+            <div>
+              <h1 class="dash-page-title">Dashboard <em>today.</em></h1>
+              <p class="dash-page-sub">Track stock levels, monitor movements, and keep your catalog moving smoothly.</p>
+            </div>
+            <div class="dash-page-actions">
+              <button id="btn-add-item" class="dash-btn dash-btn-primary" type="button">
+                <iconify-icon icon="solar:add-circle-linear" width="16"></iconify-icon>
+                New Item
+              </button>
+              <button id="btn-import-items" class="dash-btn dash-btn-outline" type="button">
+                <iconify-icon icon="solar:upload-linear" width="16"></iconify-icon>
+                Import Excel
+              </button>
+              <button id="btn-log-movement" class="dash-btn dash-btn-outline" type="button">
+                Log Movement
+              </button>
+              <a href="/docs" class="dash-btn dash-btn-outline" target="_blank" rel="noopener">
+                <iconify-icon icon="solar:upload-linear" width="16"></iconify-icon>
+                API Docs
+              </a>
+            </div>
+          </div>
+
+          <div class="dash-kpi-row">
+            <div class="dash-kpi is-highlight">
+              <div class="dash-kpi-top">
+                <span class="dash-kpi-label">Low stock alerts</span>
+                <button class="dash-kpi-link" data-goto="products" type="button">
+                  <iconify-icon icon="solar:arrow-right-up-linear" width="18"></iconify-icon>
+                </button>
+              </div>
+              <div class="dash-kpi-value" id="metric-low-stock">—</div>
+            </div>
+            <div class="dash-kpi">
+              <div class="dash-kpi-top">
+                <span class="dash-kpi-label">Total items</span>
+                <button class="dash-kpi-link" data-goto="products" type="button">
+                  <iconify-icon icon="solar:arrow-right-up-linear" width="18"></iconify-icon>
+                </button>
+              </div>
+              <div class="dash-kpi-value" id="metric-total-items">—</div>
+            </div>
+            <div class="dash-kpi">
+              <div class="dash-kpi-top">
+                <span class="dash-kpi-label">Movements today</span>
+                <button class="dash-kpi-link" data-goto="movements" type="button">
+                  <iconify-icon icon="solar:arrow-right-up-linear" width="18"></iconify-icon>
+                </button>
+              </div>
+              <div class="dash-kpi-value" id="metric-movements-today">—</div>
+            </div>
+          </div>
+
+          <div class="dash-grid-2">
+            <div class="dash-card">
+              <div class="dash-card-head">
+                <div>
+                  <h2 class="dash-card-title">Movement volume</h2>
+                  <p class="dash-card-sub">Breakdown by type over the last 7 days</p>
+                </div>
+              </div>
+              <div class="dash-chart" id="movement-chart"></div>
+            </div>
+
+            <div class="dash-card">
+              <div class="dash-card-head">
+                <div>
+                  <h2 class="dash-card-title">Reminders</h2>
+                  <p class="dash-card-sub">Items below minimum stock</p>
+                </div>
+              </div>
+              <div class="dash-reminder-list" id="low-stock-list">
+                <div class="dash-empty">No low-stock items</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="dash-grid-3">
+            <div class="dash-card">
+              <div class="dash-card-head">
+                <div>
+                  <h2 class="dash-card-title">Catalog health</h2>
+                  <p class="dash-card-sub">Items in good standing</p>
+                </div>
+                <button class="dash-btn dash-btn-outline" data-goto="products" type="button" style="min-height:36px;font-size:10px">View All</button>
+              </div>
+              <div class="dash-kpi-value" id="metric-in-stock" style="font-size:2rem">—</div>
+              <p class="dash-card-sub" style="margin-top:8px">Items above minimum threshold</p>
+            </div>
+
+            <div class="dash-card">
+              <div class="dash-card-head">
+                <div>
+                  <h2 class="dash-card-title">Recent activity</h2>
+                  <p class="dash-card-sub">Latest ledger entries</p>
+                </div>
+                <button class="dash-btn dash-btn-outline" data-goto="movements" type="button" style="min-height:36px;font-size:10px">View Ledger</button>
+              </div>
+              <div id="recent-movements-list" class="dash-reminder-list">
+                <div class="dash-empty">No movements yet</div>
+              </div>
+            </div>
+
+            <div class="dash-card">
+              <div class="dash-card-head">
+                <div>
+                  <h2 class="dash-card-title">Quick actions</h2>
+                  <p class="dash-card-sub">Common inventory tasks</p>
+                </div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <button class="dash-btn dash-btn-primary" id="btn-add-item-2" type="button" style="width:100%">+ New Item</button>
+                <button class="dash-btn dash-btn-outline" id="btn-import-items-3" type="button" style="width:100%">Import from Excel</button>
+                <button class="dash-btn dash-btn-outline" id="btn-log-movement-2" type="button" style="width:100%">Log Stock Movement</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Products Panel -->
+        <div id="panel-products" class="dash-panel">
+          <div class="dash-page-head">
+            <div>
+              <h1 class="dash-page-title">All <em>products.</em></h1>
+              <p class="dash-page-sub">View and manage every product in your catalog.</p>
+            </div>
+            <div class="dash-page-actions">
+              <button id="btn-add-item-3" class="dash-btn dash-btn-primary" type="button">
+                <iconify-icon icon="solar:add-circle-linear" width="16"></iconify-icon>
+                New Product
+              </button>
+              <button id="btn-import-items-2" class="dash-btn dash-btn-outline" type="button">
+                <iconify-icon icon="solar:upload-linear" width="16"></iconify-icon>
+                Import Excel
+              </button>
+            </div>
+          </div>
+
+          <div class="dash-toolbar">
+            <input id="filter-search" class="dash-input" type="search" placeholder="Search by name, SKU, or description…">
+            <input id="filter-category" class="dash-input" type="text" placeholder="Category" style="max-width:180px;flex:0">
+            <label class="dash-check">
+              <input id="filter-low-stock" type="checkbox">
+              Low stock only
+            </label>
+          </div>
+
+          <p id="products-count" class="dash-card-sub" style="margin-bottom:16px"></p>
+
+          <div class="dash-products-layout">
+            <div class="dash-products-main">
+              <div id="products-empty" class="dash-empty hidden">No products yet. Add your first product to get started.</div>
+              <div class="dash-table-wrap">
+                <table class="dash-table">
+                  <thead>
+                    <tr>
+                      <th>SKU</th>
+                      <th>Name</th>
+                      <th>Category</th>
+                      <th>Stock</th>
+                      <th>Min</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="products-table-body"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <aside class="dash-endpoints-card">
+              <h2 class="dash-endpoints-title">Product API endpoints</h2>
+              <p class="dash-endpoints-sub">All routes for the products module.</p>
+              <ul class="dash-endpoints-list">
+                <li>
+                  <span class="dash-endpoint-method is-get">GET</span>
+                  <code>/api/items</code>
+                  <span class="dash-endpoint-desc">List all products</span>
+                </li>
+                <li>
+                  <span class="dash-endpoint-method is-get">GET</span>
+                  <code>/api/items/:id</code>
+                  <span class="dash-endpoint-desc">Get one product by ID or SKU</span>
+                </li>
+                <li>
+                  <span class="dash-endpoint-method is-post">POST</span>
+                  <code>/api/items</code>
+                  <span class="dash-endpoint-desc">Create a new product</span>
+                </li>
+                <li>
+                  <span class="dash-endpoint-method is-put">PUT</span>
+                  <code>/api/items/:id</code>
+                  <span class="dash-endpoint-desc">Update a product</span>
+                </li>
+                <li>
+                  <span class="dash-endpoint-method is-delete">DELETE</span>
+                  <code>/api/items/:id</code>
+                  <span class="dash-endpoint-desc">Delete a product</span>
+                </li>
+                <li>
+                  <span class="dash-endpoint-method is-get">GET</span>
+                  <code>/api/items/import/template</code>
+                  <span class="dash-endpoint-desc">Download Excel template</span>
+                </li>
+                <li>
+                  <span class="dash-endpoint-method is-post">POST</span>
+                  <code>/api/items/import</code>
+                  <span class="dash-endpoint-desc">Import products from Excel</span>
+                </li>
+              </ul>
+              <a href="/docs#/Items" class="dash-btn dash-btn-outline dash-endpoints-docs" target="_blank" rel="noopener">
+                Open full API docs
+              </a>
+            </aside>
+          </div>
+        </div>
+
+        <!-- Movements Panel -->
+        <div id="panel-movements" class="dash-panel">
+          <div class="dash-page-head">
+            <div>
+              <h1 class="dash-page-title">Movement <em>ledger.</em></h1>
+              <p class="dash-page-sub">Chronological record of every stock change.</p>
+            </div>
+            <div class="dash-page-actions">
+              <select id="movement-filter-item" class="dash-select">
+                <option value="">All items</option>
+              </select>
+              <button id="btn-log-movement-3" class="dash-btn dash-btn-primary" type="button">
+                <iconify-icon icon="solar:transfer-horizontal-linear" width="16"></iconify-icon>
+                Log Movement
+              </button>
+            </div>
+          </div>
+
+          <p id="movements-count" class="dash-card-sub" style="margin-bottom:16px"></p>
+          <div id="movements-empty" class="dash-empty hidden">No movements recorded yet.</div>
+
+          <div class="dash-table-wrap">
+            <table class="dash-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Item</th>
+                  <th>Type</th>
+                  <th>Quantity</th>
+                  <th>Reason</th>
+                </tr>
+              </thead>
+              <tbody id="movements-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Import Modal -->
+  <div id="import-modal" class="modal-backdrop">
+    <div class="modal" role="dialog">
+      <h2 class="modal-title">Import products from Excel</h2>
+      <p class="modal-sub">Add many products at once using a spreadsheet. Each row becomes one product.</p>
+
+      <div class="import-template-row">
+        <button id="btn-download-template" class="dash-btn dash-btn-outline" type="button">
+          <iconify-icon icon="solar:download-linear" width="16"></iconify-icon>
+          Download template
+        </button>
+        <span class="import-template-note">Use the template so your columns match what the system expects.</span>
+      </div>
+
+      <form id="import-form">
+        <label class="import-dropzone" id="import-dropzone" for="import-file">
+          <input id="import-file" type="file" accept=".xlsx,.xls,.csv" hidden>
+          <iconify-icon icon="solar:file-text-linear" width="28"></iconify-icon>
+          <strong id="import-file-label">Choose an Excel file</strong>
+          <span>.xlsx, .xls, or .csv — up to 5 MB</span>
+        </label>
+
+        <div id="import-results" class="import-results hidden" aria-live="polite"></div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" data-close="import-modal">Cancel</button>
+          <button type="submit" class="btn-primary" id="import-submit" disabled>Upload products</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Product detail modal -->
+  <div id="product-modal" class="modal-backdrop">
+    <div class="modal" role="dialog">
+      <h2 class="modal-title">Product details</h2>
+      <p class="modal-sub">Fetched via <code>GET /api/items/:id</code></p>
+      <div id="product-detail" class="product-detail"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" data-close="product-modal">Close</button>
+        <button type="button" class="btn-primary" id="product-detail-edit">Edit product</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Item Modal -->
+  <div id="item-modal" class="modal-backdrop">
+    <div class="modal" role="dialog">
+      <h2 id="item-modal-title" class="modal-title">Add product</h2>
+      <p id="item-modal-sub" class="modal-sub">Create a new catalog entry. Stock starts at zero until movements are logged.</p>
+      <form id="item-form">
+        <div class="form-grid">
+          <div class="form-field">
+            <label class="form-label" for="item-sku">SKU</label>
+            <input id="item-sku" class="form-input" required>
+          </div>
+          <div class="form-field">
+            <label class="form-label" for="item-name">Name</label>
+            <input id="item-name" class="form-input" required>
+          </div>
+          <div class="form-field">
+            <label class="form-label" for="item-category">Category</label>
+            <input id="item-category" class="form-input" required>
+          </div>
+          <div class="form-field">
+            <label class="form-label" for="item-min">Min stock level</label>
+            <input id="item-min" class="form-input" type="number" min="0" value="5">
+          </div>
+          <div class="form-field is-full">
+            <label class="form-label" for="item-description">Description</label>
+            <textarea id="item-description" class="form-textarea"></textarea>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" data-close="item-modal">Cancel</button>
+          <button type="submit" class="btn-primary">Save Item</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Movement Modal -->
+  <div id="movement-modal" class="modal-backdrop">
+    <div class="modal" role="dialog">
+      <h2 class="modal-title">Log stock movement</h2>
+      <p class="modal-sub">Records a ledger entry and updates stock in a single transaction.</p>
+      <form id="movement-form">
+        <div class="form-grid">
+          <div class="form-field is-full">
+            <label class="form-label" for="movement-item">Item</label>
+            <select id="movement-item" class="form-select" required></select>
+          </div>
+          <div class="form-field">
+            <label class="form-label" for="movement-type">Type</label>
+            <select id="movement-type" class="form-select" required>
+              <option value="IN">IN — Stock increase</option>
+              <option value="OUT">OUT — Stock decrease</option>
+              <option value="ADJUSTMENT">ADJUSTMENT — Signed change</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label class="form-label" for="movement-qty">Quantity</label>
+            <input id="movement-qty" class="form-input" type="number" required>
+          </div>
+          <div class="form-field is-full">
+            <label class="form-label" for="movement-reason">Reason</label>
+            <input id="movement-reason" class="form-input" placeholder="e.g. Supplier delivery" required>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" data-close="movement-modal">Cancel</button>
+          <button type="submit" class="btn-primary">Log Movement</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" role="status"></div>
+
+  <script type="module" src="/js/app.js"></script>
+</body>
+</html>
