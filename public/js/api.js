@@ -1,8 +1,14 @@
 const API = {
   async request(path, options = {}) {
+    const hasBody = options.body !== undefined && options.body !== null;
+    const headers = {
+      ...(hasBody ? { 'Content-Type': 'application/json' } : {}),
+      ...options.headers,
+    };
+
     const response = await fetch(path, {
       credentials: 'include',
-      headers: { 'Content-Type': 'application/json', ...options.headers },
+      headers,
       ...options,
     });
 
@@ -39,9 +45,18 @@ const API = {
     return this.request('/api/dashboard/metrics');
   },
 
+  getExpiring(days = 90) {
+    return this.request(`/api/dashboard/expiring?days=${days}`);
+  },
+
+  getBrands() {
+    return this.request('/api/dashboard/brands');
+  },
+
   getItems(params = {}) {
     const query = new URLSearchParams();
-    if (params.category) query.set('category', params.category);
+    if (params.product_type) query.set('product_type', params.product_type);
+    if (params.brand) query.set('brand', params.brand);
     if (params.search) query.set('search', params.search);
     if (params.low_stock) query.set('low_stock', 'true');
     const qs = query.toString();
@@ -56,9 +71,10 @@ const API = {
     return this.request('/api/items', { method: 'POST', body: JSON.stringify(body) });
   },
 
-  async importItems(file) {
+  async importItems(file, productType = 'makeup') {
     const formData = new FormData();
     formData.append('file', file);
+    formData.append('product_type', productType);
 
     const response = await fetch('/api/items/import', {
       method: 'POST',
@@ -80,8 +96,8 @@ const API = {
     return data;
   },
 
-  downloadImportTemplate() {
-    window.location.href = '/api/items/import/template';
+  downloadImportTemplate(productType = 'makeup') {
+    window.location.href = `/api/items/import/template?type=${encodeURIComponent(productType)}`;
   },
 
   updateItem(id, body) {
