@@ -37,10 +37,14 @@
               <span class="dash-nav-icon"><iconify-icon icon="solar:transfer-horizontal-linear"></iconify-icon></span>
               <span class="dash-nav-text">Movements</span>
             </button>
-            <a class="dash-nav-item" href="/docs" target="_blank" rel="noopener">
-              <span class="dash-nav-icon"><iconify-icon icon="solar:document-text-linear"></iconify-icon></span>
-              <span class="dash-nav-text">API Docs</span>
-            </a>
+            <button class="dash-nav-item" data-panel="expiry" type="button">
+              <span class="dash-nav-icon"><iconify-icon icon="solar:calendar-date-linear"></iconify-icon></span>
+              <span class="dash-nav-text">Expiry</span>
+            </button>
+            <button class="dash-nav-item" data-panel="brands" type="button">
+              <span class="dash-nav-icon"><iconify-icon icon="solar:tag-linear"></iconify-icon></span>
+              <span class="dash-nav-text">Brands</span>
+            </button>
           </nav>
         </div>
 
@@ -60,9 +64,14 @@
       </div>
     </aside>
 
+    <div class="dash-backdrop" id="dash-backdrop" aria-hidden="true"></div>
+
     <!-- Main -->
     <div class="dash-main">
       <header class="dash-header">
+        <button class="dash-icon-btn dash-menu-btn" id="btn-menu" type="button" aria-label="Open menu">
+          <iconify-icon icon="solar:hamburger-menu-linear" width="20"></iconify-icon>
+        </button>
         <div class="dash-search">
           <iconify-icon icon="solar:magnifer-linear" width="20" style="color:var(--dash-text-muted)"></iconify-icon>
           <input id="global-search" type="search" placeholder="Search item, SKU, or category…">
@@ -106,10 +115,6 @@
               <button id="btn-log-movement" class="dash-btn dash-btn-outline" type="button">
                 Log Movement
               </button>
-              <a href="/docs" class="dash-btn dash-btn-outline" target="_blank" rel="noopener">
-                <iconify-icon icon="solar:upload-linear" width="16"></iconify-icon>
-                API Docs
-              </a>
             </div>
           </div>
 
@@ -141,6 +146,15 @@
               </div>
               <div class="dash-kpi-value" id="metric-movements-today">—</div>
             </div>
+            <div class="dash-kpi">
+              <div class="dash-kpi-top">
+                <span class="dash-kpi-label">Expiring soon</span>
+                <button class="dash-kpi-link" data-goto="expiry" type="button">
+                  <iconify-icon icon="solar:arrow-right-up-linear" width="18"></iconify-icon>
+                </button>
+              </div>
+              <div class="dash-kpi-value" id="metric-expiring">—</div>
+            </div>
           </div>
 
           <div class="dash-grid-2">
@@ -164,6 +178,19 @@
               <div class="dash-reminder-list" id="low-stock-list">
                 <div class="dash-empty">No low-stock items</div>
               </div>
+            </div>
+          </div>
+
+          <div class="dash-card dash-card-spaced">
+            <div class="dash-card-head">
+              <div>
+                <h2 class="dash-card-title">Expiry alerts</h2>
+                <p class="dash-card-sub">Skincare batches expiring within 90 days</p>
+              </div>
+              <button class="dash-btn dash-btn-outline" data-goto="expiry" type="button" style="min-height:36px;font-size:10px">View All</button>
+            </div>
+            <div class="dash-reminder-list" id="expiring-preview-list">
+              <div class="dash-empty">No batches expiring soon</div>
             </div>
           </div>
 
@@ -229,8 +256,15 @@
           </div>
 
           <div class="dash-toolbar">
-            <input id="filter-search" class="dash-input" type="search" placeholder="Search by name, SKU, or description…">
-            <input id="filter-category" class="dash-input" type="text" placeholder="Category" style="max-width:180px;flex:0">
+            <input id="filter-search" class="dash-input" type="search" placeholder="Search by name, code, brand, or description…">
+            <select id="filter-product-type" class="dash-select" style="max-width:180px;flex:0">
+              <option value="">All types</option>
+              <option value="skincare">Skincare</option>
+              <option value="makeup">Makeup</option>
+            </select>
+            <select id="filter-brand" class="dash-select" style="max-width:180px;flex:0">
+              <option value="">All brands</option>
+            </select>
             <label class="dash-check">
               <input id="filter-low-stock" type="checkbox">
               Low stock only
@@ -239,71 +273,67 @@
 
           <p id="products-count" class="dash-card-sub" style="margin-bottom:16px"></p>
 
-          <div class="dash-products-layout">
-            <div class="dash-products-main">
-              <div id="products-empty" class="dash-empty hidden">No products yet. Add your first product to get started.</div>
-              <div class="dash-table-wrap">
-                <table class="dash-table">
-                  <thead>
-                    <tr>
-                      <th>SKU</th>
-                      <th>Name</th>
-                      <th>Category</th>
-                      <th>Stock</th>
-                      <th>Min</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody id="products-table-body"></tbody>
-                </table>
-              </div>
-            </div>
-
-            <aside class="dash-endpoints-card">
-              <h2 class="dash-endpoints-title">Product API endpoints</h2>
-              <p class="dash-endpoints-sub">All routes for the products module.</p>
-              <ul class="dash-endpoints-list">
-                <li>
-                  <span class="dash-endpoint-method is-get">GET</span>
-                  <code>/api/items</code>
-                  <span class="dash-endpoint-desc">List all products</span>
-                </li>
-                <li>
-                  <span class="dash-endpoint-method is-get">GET</span>
-                  <code>/api/items/:id</code>
-                  <span class="dash-endpoint-desc">Get one product by ID or SKU</span>
-                </li>
-                <li>
-                  <span class="dash-endpoint-method is-post">POST</span>
-                  <code>/api/items</code>
-                  <span class="dash-endpoint-desc">Create a new product</span>
-                </li>
-                <li>
-                  <span class="dash-endpoint-method is-put">PUT</span>
-                  <code>/api/items/:id</code>
-                  <span class="dash-endpoint-desc">Update a product</span>
-                </li>
-                <li>
-                  <span class="dash-endpoint-method is-delete">DELETE</span>
-                  <code>/api/items/:id</code>
-                  <span class="dash-endpoint-desc">Delete a product</span>
-                </li>
-                <li>
-                  <span class="dash-endpoint-method is-get">GET</span>
-                  <code>/api/items/import/template</code>
-                  <span class="dash-endpoint-desc">Download Excel template</span>
-                </li>
-                <li>
-                  <span class="dash-endpoint-method is-post">POST</span>
-                  <code>/api/items/import</code>
-                  <span class="dash-endpoint-desc">Import products from Excel</span>
-                </li>
-              </ul>
-              <a href="/docs#/Items" class="dash-btn dash-btn-outline dash-endpoints-docs" target="_blank" rel="noopener">
-                Open full API docs
-              </a>
-            </aside>
+          <div id="products-empty" class="dash-empty hidden">No products yet. Add your first product to get started.</div>
+          <div class="dash-table-wrap">
+            <table class="dash-table is-cards">
+              <thead>
+                <tr>
+                  <th>Type</th>
+                  <th>Brand</th>
+                  <th>Code / Size</th>
+                  <th>Name</th>
+                  <th>Pieces</th>
+                  <th>Min</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="products-table-body"></tbody>
+            </table>
           </div>
+        </div>
+
+        <!-- Expiry Panel -->
+        <div id="panel-expiry" class="dash-panel">
+          <div class="dash-page-head">
+            <div>
+              <h1 class="dash-page-title">Expiry <em>alerts.</em></h1>
+              <p class="dash-page-sub">Skincare batches with stock that expire within the next 90 days.</p>
+            </div>
+          </div>
+
+          <p id="expiry-count" class="dash-card-sub" style="margin-bottom:16px"></p>
+          <div id="expiry-empty" class="dash-empty hidden">No batches are expiring within 90 days.</div>
+
+          <div class="dash-table-wrap">
+            <table class="dash-table is-cards">
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Brand</th>
+                  <th>Expiry</th>
+                  <th>Days left</th>
+                  <th>Pieces</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="expiry-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Brands Panel -->
+        <div id="panel-brands" class="dash-panel">
+          <div class="dash-page-head">
+            <div>
+              <h1 class="dash-page-title">Available <em>brands.</em></h1>
+              <p class="dash-page-sub">Brands currently represented in your product catalog.</p>
+            </div>
+          </div>
+
+          <p id="brands-count" class="dash-card-sub" style="margin-bottom:16px"></p>
+          <div id="brands-empty" class="dash-empty hidden">No brands yet. Add products with a brand name to see them here.</div>
+
+          <div class="dash-brands-grid" id="brands-grid"></div>
         </div>
 
         <!-- Movements Panel -->
@@ -328,13 +358,14 @@
           <div id="movements-empty" class="dash-empty hidden">No movements recorded yet.</div>
 
           <div class="dash-table-wrap">
-            <table class="dash-table">
+            <table class="dash-table is-cards">
               <thead>
                 <tr>
                   <th>Date</th>
                   <th>Item</th>
                   <th>Type</th>
                   <th>Quantity</th>
+                  <th>Expiry</th>
                   <th>Reason</th>
                 </tr>
               </thead>
@@ -351,7 +382,15 @@
   <div id="import-modal" class="modal-backdrop">
     <div class="modal" role="dialog">
       <h2 class="modal-title">Import products from Excel</h2>
-      <p class="modal-sub">Add many products at once using a spreadsheet. Each row becomes one product.</p>
+      <p class="modal-sub">Add many products at once. Choose the product type first, then download the matching template.</p>
+
+      <div class="form-field" style="margin-bottom:18px">
+        <label class="form-label" for="import-product-type">Product type</label>
+        <select id="import-product-type" class="form-select">
+          <option value="makeup">Makeup</option>
+          <option value="skincare">Skincare</option>
+        </select>
+      </div>
 
       <div class="import-template-row">
         <button id="btn-download-template" class="dash-btn dash-btn-outline" type="button">
@@ -383,7 +422,7 @@
   <div id="product-modal" class="modal-backdrop">
     <div class="modal" role="dialog">
       <h2 class="modal-title">Product details</h2>
-      <p class="modal-sub">Fetched via <code>GET /api/items/:id</code></p>
+      <p class="modal-sub">Full information for this product.</p>
       <div id="product-detail" class="product-detail"></div>
       <div class="modal-actions">
         <button type="button" class="btn-secondary" data-close="product-modal">Close</button>
@@ -399,25 +438,51 @@
       <p id="item-modal-sub" class="modal-sub">Create a new catalog entry. Stock starts at zero until movements are logged.</p>
       <form id="item-form">
         <div class="form-grid">
-          <div class="form-field">
-            <label class="form-label" for="item-sku">SKU</label>
-            <input id="item-sku" class="form-input" required>
+          <div class="form-field is-full">
+            <label class="form-label" for="item-product-type">Product type</label>
+            <select id="item-product-type" class="form-select" required>
+              <option value="makeup">Makeup</option>
+              <option value="skincare">Skincare</option>
+            </select>
           </div>
-          <div class="form-field">
+          <div class="form-field is-full" id="item-sku-wrap">
+            <label class="form-label" for="item-sku">Product code</label>
+            <input id="item-sku" class="form-input">
+          </div>
+          <div class="form-field is-full">
             <label class="form-label" for="item-name">Name</label>
             <input id="item-name" class="form-input" required>
           </div>
-          <div class="form-field">
-            <label class="form-label" for="item-category">Category</label>
-            <input id="item-category" class="form-input" required>
+          <div class="form-field is-full">
+            <label class="form-label" for="item-brand">Brand</label>
+            <input id="item-brand" class="form-input" value="Vitapharm" required>
+          </div>
+          <div class="form-field is-full hidden" id="item-amount-wrap">
+            <label class="form-label" for="item-amount">Amount</label>
+            <div style="display:grid;grid-template-columns:1fr 120px;gap:12px">
+              <input id="item-amount" class="form-input" type="number" min="0" step="0.01" placeholder="e.g. 50">
+              <select id="item-amount-unit" class="form-select">
+                <option value="ml">ml</option>
+                <option value="g">g</option>
+              </select>
+            </div>
           </div>
           <div class="form-field">
-            <label class="form-label" for="item-min">Min stock level</label>
-            <input id="item-min" class="form-input" type="number" min="0" value="5">
+            <label class="form-label" for="item-initial-stock">Total pieces</label>
+            <input id="item-initial-stock" class="form-input" type="number" min="0" value="0">
+          </div>
+          <div class="form-field hidden" id="item-expiry-wrap">
+            <label class="form-label" for="item-expiry">Expiry date</label>
+            <input id="item-expiry" class="form-input" type="date">
+            <span class="import-template-note" style="display:block;margin-top:6px">Required for skincare when total pieces is greater than 0.</span>
           </div>
           <div class="form-field is-full">
             <label class="form-label" for="item-description">Description</label>
             <textarea id="item-description" class="form-textarea"></textarea>
+          </div>
+          <div class="form-field hidden">
+            <label class="form-label" for="item-min">Min stock level</label>
+            <input id="item-min" class="form-input" type="number" min="0" value="5">
           </div>
         </div>
         <div class="modal-actions">
@@ -450,6 +515,11 @@
           <div class="form-field">
             <label class="form-label" for="movement-qty">Quantity</label>
             <input id="movement-qty" class="form-input" type="number" required>
+          </div>
+          <div class="form-field is-full hidden" id="movement-expiry-wrap">
+            <label class="form-label" for="movement-expiry">Expiry date</label>
+            <input id="movement-expiry" class="form-input" type="date">
+            <span class="import-template-note" style="display:block;margin-top:6px">Required when receiving skincare stock.</span>
           </div>
           <div class="form-field is-full">
             <label class="form-label" for="movement-reason">Reason</label>
