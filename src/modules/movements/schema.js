@@ -10,14 +10,16 @@ export const MovementTypeSchema = Type.Union([
 export const MovementSchema = Type.Object({
   id: Type.String({ format: 'uuid' }),
   item_id: Type.String({ format: 'uuid' }),
+  batch_id: Type.Optional(Type.Union([Type.String({ format: 'uuid' }), Type.Null()])),
   type: MovementTypeSchema,
   quantity: Type.Integer(),
   reason: Type.String(),
+  expiry_date: Type.Optional(Type.Union([Type.String({ format: 'date' }), Type.Null()])),
   created_at: Type.String({ format: 'date-time' }),
   item: Type.Optional(
     Type.Object({
       id: Type.String({ format: 'uuid' }),
-      sku: Type.String(),
+      sku: Type.Union([Type.String(), Type.Null()]),
       name: Type.String(),
     })
   ),
@@ -28,6 +30,7 @@ export const CreateMovementBodySchema = Type.Object({
   type: MovementTypeSchema,
   quantity: Type.Integer(),
   reason: Type.String({ minLength: 1, maxLength: 255 }),
+  expiry_date: Type.Optional(Type.String({ format: 'date' })),
 });
 
 export const ListMovementsQuerySchema = Type.Object({
