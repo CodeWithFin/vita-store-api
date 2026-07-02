@@ -7,7 +7,9 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "node scripts/dev-with-db.mjs",
-    "dev:server": "node --watch src/server.js"
+    "dev:server": "node --watch src/server.js",
+    "dev:web": "npm --prefix web run dev",
+    "dev:all": "npm run dev & npm run dev:web"
   },
   "engines": {
     "node": ">=20.0.0"

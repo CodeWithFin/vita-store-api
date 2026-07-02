@@ -36,6 +36,16 @@ if (!schemaCheck.rows[0].table_name) {
   const initSql = readFileSync(join(rootDir, 'docker', 'init.sql'), 'utf8');
   await client.query(initSql);
   console.log('Database schema initialized.');
+} else {
+  const migrationFiles = ['002_product_types_batches.sql', '003_brands.sql'];
+  for (const file of migrationFiles) {
+    const migrationPath = join(rootDir, 'docker', 'migrations', file);
+    if (existsSync(migrationPath)) {
+      const migrationSql = readFileSync(migrationPath, 'utf8');
+      await client.query(migrationSql);
+      console.log(`Database migration applied: ${file}`);
+    }
+  }
 }
 
 await client.end();
