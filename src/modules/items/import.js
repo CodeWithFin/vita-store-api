@@ -1,10 +1,22 @@
 import * as XLSX from 'xlsx';
 import { AppError } from '../../utils/errors.js';
+import { normalizeProductType } from './validation.js';
 
-const COLUMN_ALIASES = {
-  sku: ['sku', 'product code', 'product_code', 'code', 'item code', 'item_code'],
+const SHARED_ALIASES = {
   name: ['name', 'product name', 'product_name', 'product', 'item name', 'item_name'],
-  category: ['category', 'product category', 'product_category', 'type'],
+  brand: ['brand', 'manufacturer', 'label', 'product brand', 'product_brand'],
+  description: ['description', 'notes', 'details', 'product description', 'product_description'],
+  initial_stock: [
+    'total pieces',
+    'total_pieces',
+    'pieces',
+    'stock',
+    'quantity',
+    'initial stock',
+    'initial_stock',
+    'current stock',
+    'current_stock',
+  ],
   min_stock_level: [
     'min stock level',
     'min_stock_level',
@@ -15,7 +27,17 @@ const COLUMN_ALIASES = {
     'reorder level',
     'reorder_level',
   ],
-  description: ['description', 'notes', 'details', 'product description', 'product_description'],
+};
+
+const MAKEUP_ALIASES = {
+  ...SHARED_ALIASES,
+  sku: ['sku', 'product code', 'product_code', 'code', 'item code', 'item_code'],
+};
+
+const SKINCARE_ALIASES = {
+  ...SHARED_ALIASES,
+  amount: ['amount', 'size', 'volume', 'weight'],
+  amount_unit: ['unit', 'amount unit', 'amount_unit', 'measure'],
 };
 
 function normalizeHeader(value) {
@@ -26,15 +48,16 @@ function normalizeHeader(value) {
     .replace(/\s+/g, ' ');
 }
 
-function mapHeaders(headerRow) {
+function mapHeaders(headerRow, productType) {
+  const aliases = productType === 'skincare' ? SKINCARE_ALIASES : MAKEUP_ALIASES;
   const mapping = {};
 
   headerRow.forEach((cell, index) => {
     const normalized = normalizeHeader(cell);
     if (!normalized) return;
 
-    for (const [field, aliases] of Object.entries(COLUMN_ALIASES)) {
-      if (aliases.includes(normalized)) {
+    for (const [field, fieldAliases] of Object.entries(aliases)) {
+      if (fieldAliases.includes(normalized)) {
         mapping[field] = index;
       }
     }
@@ -56,11 +79,17 @@ function parseInteger(value) {
   return Number.isFinite(num) ? num : NaN;
 }
 
+function parseAmount(value) {
+  if (value === null || value === undefined || value === '') return null;
+  const num = Number.parseFloat(String(value).trim());
+  return Number.isFinite(num) ? num : NaN;
+}
+
 function isBlankRow(row) {
   return row.every((cell) => cell === null || cell === undefined || String(cell).trim() === '');
 }
 
-function validateItemRow(rowNumber, item) {
+function validateMakeupRow(rowNumber, item) {
   const issues = [];
 
   if (!item.sku) issues.push('Product code is required');
@@ -69,8 +98,9 @@ function validateItemRow(rowNumber, item) {
   if (!item.name) issues.push('Name is required');
   else if (item.name.length > 255) issues.push('Name must be 255 characters or less');
 
-  if (!item.category) issues.push('Category is required');
-  else if (item.category.length > 100) issues.push('Category must be 100 characters or less');
+  if (item.initial_stock !== null && (!Number.isFinite(item.initial_stock) || item.initial_stock < 0)) {
+    issues.push('Total pieces must be a whole number greater than or equal to 0');
+  }
 
   if (item.min_stock_level !== null && (!Number.isFinite(item.min_stock_level) || item.min_stock_level < 0)) {
     issues.push('Min stock level must be a whole number greater than or equal to 0');
@@ -83,24 +113,68 @@ function validateItemRow(rowNumber, item) {
   return null;
 }
 
-export function buildImportTemplateBuffer() {
-  const headers = ['SKU', 'Name', 'Category', 'Min Stock Level', 'Description'];
-  const example = [
-    'VIT-001',
-    'Vitamin C Tablets',
-    'Supplements',
-    10,
-    'Optional notes about this product',
-  ];
+function validateSkincareRow(rowNumber, item) {
+  const issues = [];
 
+  if (!item.name) issues.push('Name is required');
+  else if (item.name.length > 255) issues.push('Name must be 255 characters or less');
+
+  if (!Number.isFinite(item.amount) || item.amount <= 0) {
+    issues.push('Amount is required and must be greater than 0');
+  }
+
+  const unit = String(item.amount_unit ?? '').toLowerCase();
+  if (!['ml', 'g'].includes(unit)) {
+    issues.push('Unit must be ml or g');
+  }
+
+  if (item.initial_stock !== null && (!Number.isFinite(item.initial_stock) || item.initial_stock < 0)) {
+    issues.push('Total pieces must be a whole number greater than or equal to 0');
+  }
+
+  if (item.min_stock_level !== null && (!Number.isFinite(item.min_stock_level) || item.min_stock_level < 0)) {
+    issues.push('Min stock level must be a whole number greater than or equal to 0');
+  }
+
+  if (issues.length) {
+    return { row: rowNumber, sku: item.name || '—', message: issues.join('; ') };
+  }
+
+  return null;
+}
+
+export function buildImportTemplateBuffer(productType = 'makeup') {
+  if (productType === 'skincare') {
+    const headers = ['Name', 'Brand', 'Description', 'Amount', 'Unit', 'Total Pieces', 'Min Stock Level'];
+    const example = [
+      'Hydrating Face Cream',
+      'Vitapharm',
+      'Daily moisturizer for all skin types',
+      50,
+      'ml',
+      0,
+      5,
+    ];
+    const sheet = XLSX.utils.aoa_to_sheet([headers, example]);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, sheet, 'Skincare');
+    return XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+  }
+
+  const headers = ['Product Code', 'Name', 'Brand', 'Description', 'Total Pieces', 'Min Stock Level'];
+  const example = ['MKP-001', 'Matte Lipstick Rose', 'Vitapharm', 'Long-wear matte finish', 0, 5];
   const sheet = XLSX.utils.aoa_to_sheet([headers, example]);
   const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, sheet, 'Products');
-
+  XLSX.utils.book_append_sheet(workbook, sheet, 'Makeup');
   return XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
 }
 
-export function parseItemsSpreadsheet(buffer) {
+export function parseItemsSpreadsheet(buffer, productTypeInput = 'makeup') {
+  const productType = normalizeProductType(productTypeInput);
+  if (!['skincare', 'makeup'].includes(productType)) {
+    throw new AppError(400, 'Import type must be skincare or makeup');
+  }
+
   let workbook;
 
   try {
@@ -121,61 +195,86 @@ export function parseItemsSpreadsheet(buffer) {
   });
 
   if (rows.length < 2) {
-    throw new AppError(
-      400,
-      'The file must include a header row and at least one product row.'
-    );
+    throw new AppError(400, 'The file must include a header row and at least one product row.');
   }
 
-  const mapping = mapHeaders(rows[0]);
-  const requiredColumns = ['sku', 'name', 'category'];
+  const mapping = mapHeaders(rows[0], productType);
+  const requiredColumns =
+    productType === 'skincare' ? ['name', 'amount', 'amount_unit'] : ['sku', 'name'];
   const missingColumns = requiredColumns.filter((field) => mapping[field] === undefined);
 
   if (missingColumns.length) {
     throw new AppError(
       400,
-      `Missing required columns: ${missingColumns.join(', ')}. Download the template for the correct format.`
+      `Missing required columns: ${missingColumns.join(', ')}. Download the ${productType} template for the correct format.`
     );
   }
 
   const items = [];
   const errors = [];
-  const seenSkus = new Set();
+  const seenKeys = new Set();
 
   for (let index = 1; index < rows.length; index++) {
     const row = rows[index];
     if (isBlankRow(row)) continue;
 
     const rowNumber = index + 1;
-    const sku = cellText(row, mapping.sku);
     const minStockRaw = mapping.min_stock_level !== undefined ? row[mapping.min_stock_level] : '';
     const minStockParsed = parseInteger(minStockRaw);
+    const initialStockRaw = mapping.initial_stock !== undefined ? row[mapping.initial_stock] : '';
+    const initialStockParsed = parseInteger(initialStockRaw);
 
-    const item = {
-      sku,
-      name: cellText(row, mapping.name),
-      category: cellText(row, mapping.category),
-      description: cellText(row, mapping.description) || null,
-      min_stock_level: minStockRaw === '' || minStockRaw === null || minStockRaw === undefined ? 5 : minStockParsed,
-    };
+    let item;
+    let validationError;
+    let dedupeKey;
 
-    const validationError = validateItemRow(rowNumber, item);
+    if (productType === 'skincare') {
+      item = {
+        product_type: 'skincare',
+        name: cellText(row, mapping.name),
+        brand: cellText(row, mapping.brand) || 'Vitapharm',
+        description: cellText(row, mapping.description) || null,
+        amount: parseAmount(row[mapping.amount]),
+        amount_unit: cellText(row, mapping.amount_unit).toLowerCase(),
+        category: 'Skincare',
+        initial_stock: initialStockRaw === '' ? 0 : initialStockParsed,
+        min_stock_level: minStockRaw === '' ? 5 : minStockParsed,
+      };
+      validationError = validateSkincareRow(rowNumber, item);
+      dedupeKey = item.name.toLowerCase();
+    } else {
+      item = {
+        product_type: 'makeup',
+        sku: cellText(row, mapping.sku),
+        name: cellText(row, mapping.name),
+        brand: cellText(row, mapping.brand) || 'Vitapharm',
+        description: cellText(row, mapping.description) || null,
+        category: 'Makeup',
+        initial_stock: initialStockRaw === '' ? 0 : initialStockParsed,
+        min_stock_level: minStockRaw === '' ? 5 : minStockParsed,
+      };
+      validationError = validateMakeupRow(rowNumber, item);
+      dedupeKey = item.sku.toLowerCase();
+    }
+
     if (validationError) {
       errors.push(validationError);
       continue;
     }
 
-    const skuKey = item.sku.toLowerCase();
-    if (seenSkus.has(skuKey)) {
+    if (seenKeys.has(dedupeKey)) {
       errors.push({
         row: rowNumber,
-        sku: item.sku,
-        message: 'Duplicate product code in this file',
+        sku: productType === 'makeup' ? item.sku : item.name,
+        message:
+          productType === 'makeup'
+            ? 'Duplicate product code in this file'
+            : 'Duplicate product name in this file',
       });
       continue;
     }
 
-    seenSkus.add(skuKey);
+    seenKeys.add(dedupeKey);
     items.push({ ...item, _sourceRow: rowNumber });
   }
 

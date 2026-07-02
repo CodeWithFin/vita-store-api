@@ -20,7 +20,7 @@
         <img class="app-brand-logo" src="/assets/images/vitapharm.png" alt="Vitapharm">
       </a>
 
-      <div class="landing-nav-links">
+      <div class="landing-nav-links" id="landing-nav-links">
         <a href="#hero" class="is-active">Home</a>
         <a href="#features">Features</a>
         <a href="#pillars">Why Vitapharm</a>
@@ -28,7 +28,12 @@
         <a href="#cta">Sign In</a>
       </div>
 
-      <a href="/login" class="app-nav-cta">Sign In</a>
+      <div class="landing-nav-actions">
+        <button class="landing-menu-btn" id="landing-menu-btn" type="button" aria-label="Open menu" aria-expanded="false">
+          <iconify-icon icon="solar:hamburger-menu-linear" width="22"></iconify-icon>
+        </button>
+        <a href="/login" class="app-nav-cta">Sign In</a>
+      </div>
     </nav>
   </div>
 
@@ -123,17 +128,11 @@
       <div class="landing-features-grid">
         <div class="landing-feature-col">
           <article class="landing-feature-card landing-reveal">
-            <div class="landing-feature-media">
-              <img src="https://images.unsplash.com/photo-1553413077-190dd305871c?auto=format&fit=crop&w=800&q=80" alt="Product catalog">
-            </div>
             <h3 class="landing-feature-label">Your product list</h3>
             <p class="landing-feature-meta">Name · Code · Category</p>
             <p class="landing-feature-copy">Add and update products with names, product codes, categories, and a minimum stock level for each item.</p>
           </article>
           <article class="landing-feature-card landing-reveal">
-            <div class="landing-feature-media">
-              <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80" alt="Dashboard metrics">
-            </div>
             <h3 class="landing-feature-label">At-a-glance summary</h3>
             <p class="landing-feature-meta">Totals · Alerts · Overview</p>
             <p class="landing-feature-copy">Open your dashboard to see how many products you carry, which items are running low, and how stock is moving today.</p>
@@ -141,17 +140,11 @@
         </div>
         <div class="landing-feature-col">
           <article class="landing-feature-card landing-reveal">
-            <div class="landing-feature-media">
-              <img src="https://images.unsplash.com/photo-1578575437130-527eed3abbcd?auto=format&fit=crop&w=800&q=80" alt="Stock movements">
-            </div>
             <h3 class="landing-feature-label">Stock in &amp; out</h3>
             <p class="landing-feature-meta">Received · Sold · Corrected</p>
             <p class="landing-feature-copy">Record deliveries from suppliers, sales to customers, and small corrections — with a short note so you remember why.</p>
           </article>
           <article class="landing-feature-card landing-reveal">
-            <div class="landing-feature-media">
-              <img src="https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=800&q=80" alt="Search and filter">
-            </div>
             <h3 class="landing-feature-label">Find anything fast</h3>
             <p class="landing-feature-meta">Search · Filter · Low stock</p>
             <p class="landing-feature-copy">Search by product name or code. Filter by category, or quickly show only items that need reordering.</p>
@@ -159,17 +152,11 @@
         </div>
         <div class="landing-feature-col">
           <article class="landing-feature-card landing-reveal">
-            <div class="landing-feature-media">
-              <img src="https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&w=800&q=80" alt="Stock history">
-            </div>
             <h3 class="landing-feature-label">Change history</h3>
             <p class="landing-feature-meta">Dates · Reasons · Records</p>
             <p class="landing-feature-copy">Look back at past stock changes whenever you need to check what happened and when.</p>
           </article>
           <article class="landing-feature-card landing-reveal">
-            <div class="landing-feature-media">
-              <img src="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=800&q=80" alt="Secure access">
-            </div>
             <h3 class="landing-feature-label">Secure sign-in</h3>
             <p class="landing-feature-meta">Private · Protected · Simple</p>
             <p class="landing-feature-copy">Your stock data stays behind a sign-in screen, so only your team can view and update it.</p>
@@ -220,7 +207,7 @@
     <div class="section-shell">
       <div class="landing-process-grid">
         <div class="landing-process-visual landing-reveal">
-          <img src="https://images.unsplash.com/photo-1553877522-43269d4ea984?auto=format&fit=crop&w=1200&q=80" alt="Team managing inventory">
+          <img src="/assets/images/skin-care-african.jpg" alt="African skincare products on display">
         </div>
         <div class="landing-reveal">
           <p style="margin:0 0 12px;font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--vs-text-soft)">How it works</p>

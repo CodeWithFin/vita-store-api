@@ -1,19 +1,22 @@
 import { AppError } from '../../utils/errors.js';
+import * as batchesRepo from '../items/batches.js';
 
 function mapMovement(row) {
   const movement = {
     id: row.id,
     item_id: row.item_id,
+    batch_id: row.batch_id ?? null,
     type: row.type,
     quantity: row.quantity,
     reason: row.reason,
+    expiry_date: row.expiry_date ?? null,
     created_at: row.created_at,
   };
 
-  if (row.item_sku) {
+  if (row.item_sku !== undefined || row.item_name) {
     movement.item = {
       id: row.item_id,
-      sku: row.item_sku,
+      sku: row.item_sku ?? null,
       name: row.item_name,
     };
   }
@@ -26,8 +29,12 @@ function mapItem(row) {
     id: row.id,
     sku: row.sku,
     name: row.name,
+    brand: row.brand,
     description: row.description,
     category: row.category,
+    product_type: row.product_type,
+    amount: row.amount,
+    amount_unit: row.amount_unit,
     cost_price: row.cost_price,
     selling_price: row.selling_price,
     current_stock: row.current_stock,
@@ -61,7 +68,60 @@ function resolveSignedQuantity(type, quantity) {
   }
 }
 
-export async function createMovement(db, { item_id, type, quantity, reason }) {
+async function applySkincareBatchChange(client, item, type, signedQuantity, expiryDate) {
+  if (type === 'IN') {
+    if (!expiryDate) {
+      throw new AppError(400, 'Expiry date is required when receiving skincare stock');
+    }
+
+    const batch = await batchesRepo.addToBatch(client, item.id, expiryDate, signedQuantity);
+    await batchesRepo.syncItemStockFromBatches(client, item.id);
+    return { batch_id: batch.id, expiry_date: expiryDate };
+  }
+
+  if (type === 'OUT') {
+    const { deductions, remaining } = await batchesRepo.deductFromBatches(
+      client,
+      item.id,
+      Math.abs(signedQuantity)
+    );
+
+    if (remaining > 0) {
+      throw new AppError(400, 'Insufficient stock for this movement');
+    }
+
+    await batchesRepo.syncItemStockFromBatches(client, item.id);
+    return {
+      batch_id: deductions[0]?.batch_id ?? null,
+      expiry_date: deductions[0]?.expiry_date ?? null,
+    };
+  }
+
+  if (signedQuantity > 0) {
+    if (!expiryDate) {
+      throw new AppError(400, 'Expiry date is required when increasing skincare stock');
+    }
+
+    const batch = await batchesRepo.addToBatch(client, item.id, expiryDate, signedQuantity);
+    await batchesRepo.syncItemStockFromBatches(client, item.id);
+    return { batch_id: batch.id, expiry_date: expiryDate };
+  }
+
+  const { remaining } = await batchesRepo.deductFromBatches(
+    client,
+    item.id,
+    Math.abs(signedQuantity)
+  );
+
+  if (remaining > 0) {
+    throw new AppError(400, 'Insufficient stock for this adjustment');
+  }
+
+  await batchesRepo.syncItemStockFromBatches(client, item.id);
+  return { batch_id: null, expiry_date: null };
+}
+
+export async function createMovement(db, { item_id, type, quantity, reason, expiry_date }) {
   const signedQuantity = resolveSignedQuantity(type, quantity);
   const client = await db.connect();
 
@@ -81,26 +141,27 @@ export async function createMovement(db, { item_id, type, quantity, reason }) {
     }
 
     const item = itemResult.rows[0];
-    const newStock = item.current_stock + signedQuantity;
+    let batchMeta = { batch_id: null, expiry_date: expiry_date ?? null };
 
-    if (newStock < 0) {
-      throw new AppError(400, 'Insufficient stock for this movement');
+    if (item.product_type === 'skincare') {
+      batchMeta = await applySkincareBatchChange(client, item, type, signedQuantity, expiry_date);
+    } else {
+      const newStock = item.current_stock + signedQuantity;
+      if (newStock < 0) {
+        throw new AppError(400, 'Insufficient stock for this movement');
+      }
+
+      await client.query(`UPDATE items SET current_stock = $1 WHERE id = $2`, [newStock, item_id]);
     }
 
     const movementResult = await client.query(
-      `INSERT INTO movements (item_id, type, quantity, reason)
-       VALUES ($1, $2, $3, $4)
+      `INSERT INTO movements (item_id, batch_id, type, quantity, reason, expiry_date)
+       VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING *`,
-      [item_id, type, signedQuantity, reason]
+      [item_id, batchMeta.batch_id, type, signedQuantity, reason, batchMeta.expiry_date]
     );
 
-    const updatedItemResult = await client.query(
-      `UPDATE items
-       SET current_stock = $1
-       WHERE id = $2
-       RETURNING *`,
-      [newStock, item_id]
-    );
+    const updatedItemResult = await client.query(`SELECT * FROM items WHERE id = $1`, [item_id]);
 
     await client.query('COMMIT');
 
@@ -137,7 +198,6 @@ export async function findAll(db, { itemId, page = 1, limit = 20 }) {
   );
 
   const total = countResult.rows[0].total;
-
   const dataParams = [...params, limit, offset];
 
   const result = await db.query(

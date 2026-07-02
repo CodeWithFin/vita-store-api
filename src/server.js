@@ -36,6 +36,24 @@ async function buildServer() {
     },
   });
 
+  // Tolerate empty JSON payloads from stale/cached clients.
+  fastify.addContentTypeParser(
+    'application/json',
+    { parseAs: 'string' },
+    (request, body, done) => {
+      if (body === '') {
+        done(null, {});
+        return;
+      }
+
+      try {
+        done(null, JSON.parse(body));
+      } catch {
+        done(new AppError(400, 'Invalid JSON payload'));
+      }
+    }
+  );
+
   await fastify.register(swagger, {
     openapi: {
       info: {
