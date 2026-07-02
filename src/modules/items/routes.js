@@ -3,6 +3,7 @@ import {
   UpdateItemBodySchema,
   ItemIdParamsSchema,
   ListItemsQuerySchema,
+  ImportTemplateQuerySchema,
   ItemsListResponseSchema,
   ItemResponseSchema,
   DeleteItemResponseSchema,
@@ -18,7 +19,8 @@ export default async function itemsRoutes(fastify) {
       schema: {
         tags: ['Items'],
         summary: 'Download Excel import template',
-        description: 'Returns a sample spreadsheet for bulk product uploads.',
+        description: 'Returns a sample spreadsheet for bulk skincare or makeup product uploads.',
+        querystring: ImportTemplateQuerySchema,
         response: {
           200: { type: 'string', contentMediaType: 'application/octet-stream' },
           500: ErrorResponseSchema,
@@ -35,7 +37,7 @@ export default async function itemsRoutes(fastify) {
         tags: ['Items'],
         summary: 'Import products from Excel',
         description:
-          'Upload an Excel (.xlsx, .xls) or CSV file to add multiple products at once.',
+          'Upload an Excel (.xlsx, .xls) or CSV file to add multiple skincare or makeup products at once.',
         consumes: ['multipart/form-data'],
         response: {
           200: BulkImportResponseSchema,
@@ -55,7 +57,7 @@ export default async function itemsRoutes(fastify) {
         tags: ['Items'],
         summary: 'List inventory items',
         description:
-          'Fetch all items with optional filters for category, search text, and low stock status.',
+          'Fetch all items with optional filters for product type, search text, and low stock status.',
         querystring: ListItemsQuerySchema,
         response: {
           200: ItemsListResponseSchema,
@@ -89,7 +91,7 @@ export default async function itemsRoutes(fastify) {
       schema: {
         tags: ['Items'],
         summary: 'Create a new inventory item',
-        description: 'Creates an item with initial stock of 0.',
+        description: 'Creates a skincare or makeup product. Stock can be set on creation.',
         body: CreateItemBodySchema,
         response: {
           201: ItemResponseSchema,

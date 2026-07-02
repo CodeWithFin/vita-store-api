@@ -1,12 +1,16 @@
 import { AppError } from '../../utils/errors.js';
 import * as itemsRepo from './repository.js';
+import { batchesRepo } from './repository.js';
 import { buildImportTemplateBuffer, parseItemsSpreadsheet } from './import.js';
+import { validateCreateItem, validateUpdateItem } from './validation.js';
 
 export async function listItems(request, reply) {
-  const { category, search, low_stock: lowStockParam } = request.query;
+  const { product_type: productType, brand, category, search, low_stock: lowStockParam } = request.query;
   const lowStock = lowStockParam === true || lowStockParam === 'true';
 
   const items = await itemsRepo.findAll(request.server.db, {
+    productType,
+    brand,
     category,
     search,
     lowStock,
@@ -22,16 +26,22 @@ export async function getItem(request, reply) {
     throw new AppError(404, 'Item not found');
   }
 
+  if (item.product_type === 'skincare') {
+    item.batches = await batchesRepo.findByItemId(request.server.db, item.id);
+  }
+
   return reply.send({ data: item });
 }
 
 export async function createItem(request, reply) {
+  const payload = validateCreateItem(request.body);
+
   try {
-    const item = await itemsRepo.create(request.server.db, request.body);
+    const item = await itemsRepo.create(request.server.db, payload);
     return reply.status(201).send({ data: item });
   } catch (err) {
     if (err.code === '23505') {
-      throw new AppError(409, 'An item with this SKU already exists');
+      throw new AppError(409, 'A product with this code already exists');
     }
     throw err;
   }
@@ -44,7 +54,8 @@ export async function updateItem(request, reply) {
     throw new AppError(404, 'Item not found');
   }
 
-  const item = await itemsRepo.update(request.server.db, existing.id, request.body);
+  const updates = validateUpdateItem(existing, request.body);
+  const item = await itemsRepo.update(request.server.db, existing.id, updates);
 
   if (!item) {
     throw new AppError(404, 'Item not found');
@@ -84,35 +95,50 @@ export async function deleteItem(request, reply) {
   });
 }
 
-export async function downloadImportTemplate(_request, reply) {
-  const buffer = buildImportTemplateBuffer();
+export async function downloadImportTemplate(request, reply) {
+  const productType = request.query.type === 'skincare' ? 'skincare' : 'makeup';
+  const buffer = buildImportTemplateBuffer(productType);
+  const filename =
+    productType === 'skincare'
+      ? 'vitapharm-skincare-template.xlsx'
+      : 'vitapharm-makeup-template.xlsx';
 
   return reply
     .header(
       'Content-Type',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
-    .header(
-      'Content-Disposition',
-      'attachment; filename="vitapharm-products-template.xlsx"'
-    )
+    .header('Content-Disposition', `attachment; filename="${filename}"`)
     .send(buffer);
 }
 
 export async function importItems(request, reply) {
-  const upload = await request.file();
+  let productType = 'makeup';
+  let buffer = null;
+  let filename = '';
 
-  if (!upload) {
+  for await (const part of request.parts()) {
+    if (part.type === 'file') {
+      filename = part.filename?.toLowerCase() ?? '';
+      buffer = await part.toBuffer();
+      continue;
+    }
+
+    if (part.fieldname === 'product_type') {
+      const value = String(await part.value).trim().toLowerCase();
+      productType = value === 'skincare' ? 'skincare' : 'makeup';
+    }
+  }
+
+  if (!buffer) {
     throw new AppError(400, 'No file uploaded. Choose an Excel file to import.');
   }
 
-  const filename = upload.filename?.toLowerCase() ?? '';
   if (!/\.(xlsx|xls|csv)$/.test(filename)) {
     throw new AppError(400, 'Please upload an Excel file (.xlsx, .xls) or CSV.');
   }
 
-  const buffer = await upload.toBuffer();
-  const { items, errors: parseErrors } = parseItemsSpreadsheet(buffer);
+  const { items, errors: parseErrors } = parseItemsSpreadsheet(buffer, productType);
 
   if (items.length === 0 && parseErrors.length === 0) {
     throw new AppError(400, 'No product rows were found in the uploaded file.');
